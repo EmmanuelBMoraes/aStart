@@ -32,20 +32,32 @@ function criarTabuleiro(rng: () => number): Grid {
 }
 
 const tabuleiro = criarTabuleiro(rng);
-const inicio = tabuleiro[0][0];
-const fim = tabuleiro[7][7];
+const inicio = tabuleiro[0][0]; //passar como parametro
+const fim = tabuleiro[7][7]; //passar como parametro
 const cavalo = new Cavalo();
 const aStar = new AStar(tabuleiro);
+const aStar2 = new AStar(tabuleiro, "hB");
 
 console.log("iniciando A* teste para o cavalo");
-const caminho = aStar.encontrarCaminho(inicio, fim, cavalo);
+const { caminho, nosExpandidos } = aStar.encontrarCaminho(inicio, fim, cavalo);
+const { caminho: caminho2, nosExpandidos: nosExpandidos2 } =
+  aStar2.encontrarCaminho(inicio, fim, cavalo);
 
 if (caminho) {
   console.log("Caminho encontrado:");
   const custoTotal = caminho[caminho.length - 1].g;
-  console.log(`Custo total: ${custoTotal}`);
+  console.log(`Custo total: ${custoTotal}, nós expandidos: ${nosExpandidos}`);
   const coordenadas = caminho.map((no) => `(${no.x}, ${no.y})`).join(" -> ");
   console.log(coordenadas);
+} else {
+  console.log("Caminho não encontrado.");
+}
+if (caminho2) {
+  console.log("Caminho encontrado:");
+  const custoTotal2 = caminho2[caminho2.length - 1].g;
+  console.log(`Custo total: ${custoTotal2}, nós expandidos: ${nosExpandidos2}`);
+  const coordenadas2 = caminho2.map((no) => `(${no.x}, ${no.y})`).join(" -> ");
+  console.log(coordenadas2);
 } else {
   console.log("Caminho não encontrado.");
 }
