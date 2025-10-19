@@ -1,6 +1,6 @@
 import type { Grid } from "./types";
 import type { Node } from "./Node";
-import { CUSTO_TERRENO } from "./Constantes.ts";
+import { CUSTO_TERRENO } from "./Constantes";
 import type { Agente } from "./Interfaces";
 
 type ResultadoAStar = {

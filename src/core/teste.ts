@@ -1,8 +1,8 @@
-import { CUSTO_TERRENO } from "./Constantes.ts";
-import type { Grid } from "./types.ts";
-import { Node } from "./Node.ts";
-import { AStar } from "./AStar.ts";
-import { Cavalo } from "./Cavalo.ts";
+import { CUSTO_TERRENO } from "./Constantes";
+import type { Grid } from "./types";
+import { Node } from "./Node";
+import { AStar } from "./AStar";
+import { Cavalo } from "./Cavalo";
 import seedrandom from "seedrandom";
 
 const seed = Date.now();
