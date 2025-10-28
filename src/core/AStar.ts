@@ -1,12 +1,7 @@
-import type { Grid } from "./types";
+import type { Grid, Position, ResultadoAStar } from "./types";
 import type { Node } from "./Node";
 import { CUSTO_TERRENO } from "./Constantes";
 import type { Agente } from "./Interfaces";
-
-type ResultadoAStar = {
-  caminho: Node[] | null;
-  nosExpandidos: number;
-};
 
 export class AStar {
   private grid: Grid;
@@ -71,7 +66,17 @@ export class AStar {
           caminho.push(atual);
           atual = atual.pai;
         }
-        return { caminho: caminho.reverse(), nosExpandidos };
+        const closedListArray: Position[] = Array.from(listaFechada).map(
+          (s) => {
+            const [x, y] = s.split(",");
+            return { x: parseInt(x), y: parseInt(y) };
+          }
+        );
+        return {
+          caminho: caminho.reverse(),
+          nosExpandidos,
+          closedList: closedListArray,
+        };
       }
       listaFechada.add(`${noAtual.x},${noAtual.y}`);
       const vizinhos = peca.getVizinhos(noAtual, this.grid);
@@ -95,6 +100,10 @@ export class AStar {
         }
       }
     }
-    return { caminho: null, nosExpandidos };
+    const closedListArray: Position[] = Array.from(listaFechada).map((s) => {
+      const [x, y] = s.split(",");
+      return { x: parseInt(x), y: parseInt(y) };
+    });
+    return { caminho: null, nosExpandidos, closedList: closedListArray };
   }
 }

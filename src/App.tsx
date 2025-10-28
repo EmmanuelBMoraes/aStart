@@ -7,7 +7,8 @@ import { AStar } from "./core/AStar";
 import { Cavalo } from "./core/Cavalo";
 import { Node } from "./core/Node";
 import { CUSTO_TERRENO } from "./core/Constantes";
-import type { Grid, Position } from "./core/types";
+import type { Grid, Position, ResultadoAStar } from "./core/types";
+import { Legenda } from "./components/Lengenda";
 
 const App: React.FC = () => {
   const [seed, setSeed] = useState<number>(Date.now());
@@ -20,12 +21,21 @@ const App: React.FC = () => {
   const [currentHorsePosition1, setCurrentHorsePosition1] =
     useState<Position | null>(null);
   const [animationPath1, setAnimationPath1] = useState<Node[] | null>(null);
+  const [closedList1, setClosedList1] = useState<Position[]>([]);
+  const [searchResult1, setSearchResult1] = useState<ResultadoAStar | null>(
+    null
+  );
 
   const [grid2, setGrid2] = useState<Grid>([]);
   const [revealedPath2, setRevealedPath2] = useState<Position[]>([]);
   const [currentHorsePosition2, setCurrentHorsePosition2] =
     useState<Position | null>(null);
   const [animationPath2, setAnimationPath2] = useState<Node[] | null>(null);
+  const [closedList2, setClosedList2] = useState<Position[]>([]);
+  const [searchResult2, setSearchResult2] = useState<ResultadoAStar | null>(
+    null
+  );
+
   const [resultado1, setResultado1] = useState<number>(0);
   const [resultado2, setResultado2] = useState<number>(0);
 
@@ -39,6 +49,12 @@ const App: React.FC = () => {
     setCurrentHorsePosition2(null);
     setAnimationPath2(null);
     setIsAnimating(false);
+    setResultado1(0);
+    setResultado2(0);
+    setClosedList1([]);
+    setClosedList2([]);
+    setSearchResult1(null);
+    setSearchResult2(null);
 
     const rng1 = seedrandom(newSeed.toString());
     const rng2 = seedrandom(newSeed.toString());
@@ -51,6 +67,9 @@ const App: React.FC = () => {
   };
 
   const handleFindPath = () => {
+    setResultado1(0);
+    setResultado2(0);
+    setIsAnimating(true);
     if (!grid1.length || !grid2.length || isAnimating) return;
 
     const inicio1 = grid1[startPos.y][startPos.x];
@@ -60,29 +79,36 @@ const App: React.FC = () => {
       fim1.custoTerreno === CUSTO_TERRENO.BARREIRA
     ) {
       alert("O ponto de início ou fim não pode ser uma barreira!");
+      setIsAnimating(false);
       return;
     }
 
     const cavalo = new Cavalo();
     setRevealedPath1([]);
     setRevealedPath2([]);
+    setClosedList1([]);
+    setClosedList2([]);
 
     const aStar1 = new AStar(grid1);
-    const resultado1 = aStar1.encontrarCaminho(inicio1, fim1, cavalo);
-    setResultado1(resultado1.nosExpandidos);
-    console.log(
-      `Heurística Fraca: ${resultado1.nosExpandidos} nós expandidos.`
+    const resultado1: ResultadoAStar = aStar1.encontrarCaminho(
+      inicio1,
+      fim1,
+      cavalo
     );
+    setResultado1(resultado1.nosExpandidos);
+    setSearchResult1(resultado1);
     if (resultado1.caminho) setAnimationPath1(resultado1.caminho);
 
     const inicio2 = grid2[startPos.y][startPos.x];
     const fim2 = grid2[endPos.y][endPos.x];
     const aStar2 = new AStar(grid2, "hB");
-    const resultado2 = aStar2.encontrarCaminho(inicio2, fim2, cavalo);
-    setResultado2(resultado2.nosExpandidos);
-    console.log(
-      `Heurística Forte: ${resultado2.nosExpandidos} nós expandidos.`
+    const resultado2: ResultadoAStar = aStar2.encontrarCaminho(
+      inicio2,
+      fim2,
+      cavalo
     );
+    setResultado2(resultado2.nosExpandidos);
+    setSearchResult2(resultado2);
     if (resultado2.caminho) setAnimationPath2(resultado2.caminho);
   };
 
@@ -105,15 +131,21 @@ const App: React.FC = () => {
   const runAnimation = (
     path: Node[] | null,
     setHorsePos: Function,
-    setRevealed: Function
+    setRevealed: Function,
+    onComplete: () => void
   ) => {
-    if (!path) return;
-    setIsAnimating(true);
+    if (!path) {
+      setIsAnimating(false);
+      onComplete();
+      return;
+    }
+
     let i = 0;
     const intervalId = setInterval(() => {
       if (i >= path.length) {
         clearInterval(intervalId);
         setIsAnimating(false);
+        onComplete();
         return;
       }
       const nextNode = path[i];
@@ -128,7 +160,12 @@ const App: React.FC = () => {
     return runAnimation(
       animationPath1,
       setCurrentHorsePosition1,
-      setRevealedPath1
+      setRevealedPath1,
+      () => {
+        if (searchResult1) {
+          setClosedList1(searchResult1.closedList ?? []);
+        }
+      }
     );
   }, [animationPath1]);
 
@@ -136,12 +173,17 @@ const App: React.FC = () => {
     return runAnimation(
       animationPath2,
       setCurrentHorsePosition2,
-      setRevealedPath2
+      setRevealedPath2,
+      () => {
+        if (searchResult2) {
+          setClosedList2(searchResult2.closedList ?? []);
+        }
+      }
     );
   }, [animationPath2]);
 
   return (
-    <div className="bg-gray-800 min-h-screen flex flex-col items-center text-white p-4 pt-10">
+    <div className="bg-gray-800 min-h-screen flex flex-col items-center text-white p-4 pt-5">
       <header className="mb-6">
         <h1 className="text-4xl font-bold">Comparador de Heurísticas A*</h1>
       </header>
@@ -199,12 +241,17 @@ const App: React.FC = () => {
           />
         </div>
       </div>
-
+      <Legenda />
       <main className="flex flex-row items-start gap-x-10">
         <div className="flex flex-col items-center gap-y-2">
           <h2 className="text-2xl font-semibold">Heurística Fraca</h2>
-          {resultado1 !== 0 && (
-            <p className="mb-2">Nós expandidos: {resultado1}</p>
+          {resultado1 !== 0 && !isAnimating && (
+            <p className="mb-2">
+              Nós expandidos: {resultado1} e custo total:{" "}
+              {animationPath1
+                ? animationPath1[animationPath1?.length - 1].g.toFixed(1)
+                : 0}
+            </p>
           )}
           <Tabuleiro
             grid={grid1}
@@ -212,13 +259,19 @@ const App: React.FC = () => {
             startPos={startPos}
             endPos={endPos}
             currentHorsePosition={currentHorsePosition1}
+            closedList={closedList1}
           />
         </div>
 
         <div className="flex flex-col items-center gap-y-2">
           <h2 className="text-2xl font-semibold">Heurística Forte</h2>
-          {resultado1 !== 0 && (
-            <p className="mb-2">Nós expandidos: {resultado2}</p>
+          {resultado1 !== 0 && !isAnimating && (
+            <p className="mb-2">
+              Nós expandidos: {resultado2} e custo total:{" "}
+              {animationPath2
+                ? animationPath2[animationPath2?.length - 1].g.toFixed(1)
+                : 0}
+            </p>
           )}
           <Tabuleiro
             grid={grid2}
@@ -226,6 +279,7 @@ const App: React.FC = () => {
             startPos={startPos}
             endPos={endPos}
             currentHorsePosition={currentHorsePosition2}
+            closedList={closedList2}
           />
         </div>
       </main>

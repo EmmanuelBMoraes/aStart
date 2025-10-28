@@ -16,8 +16,8 @@ export function criarTabuleiro(
       let custo = CUSTO_TERRENO.TERRA;
       if (
         custoRng < 0.05 &&
-        !(inicio.x === 0 && inicio.y === 0) &&
-        !(fim.x === 7 && fim.y === 7)
+        !(x === inicio.x && y === inicio.y) &&
+        !(x === fim.x && y === fim.y)
       ) {
         custo = CUSTO_TERRENO.BARREIRA;
       } else if (custoRng < 0.2) {
@@ -25,6 +25,7 @@ export function criarTabuleiro(
       } else if (custoRng < 0.5) {
         custo = CUSTO_TERRENO.ESTRADA;
       }
+
       linha.push(new Node(x, y, custo));
     }
     tabuleiro.push(linha);

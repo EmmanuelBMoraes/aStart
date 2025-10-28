@@ -8,6 +8,7 @@ interface TabuleiroProps {
   startPos: Position;
   endPos: Position;
   currentHorsePosition: Position | null;
+  closedList: Position[];
 }
 
 export const Tabuleiro: React.FC<TabuleiroProps> = ({
@@ -16,6 +17,7 @@ export const Tabuleiro: React.FC<TabuleiroProps> = ({
   startPos,
   endPos,
   currentHorsePosition,
+  closedList,
 }) => {
   return (
     <div className="relative">
@@ -27,6 +29,9 @@ export const Tabuleiro: React.FC<TabuleiroProps> = ({
             );
             const isStart = node.x === startPos.x && node.y === startPos.y;
             const isEnd = node.x === endPos.x && node.y === endPos.y;
+            const isClosed = closedList.some(
+              (closedNode) => closedNode.x === x && closedNode.y === y
+            );
 
             return (
               <Celula
@@ -35,6 +40,7 @@ export const Tabuleiro: React.FC<TabuleiroProps> = ({
                 isPath={isPath}
                 isStart={isStart}
                 isEnd={isEnd}
+                isClosed={isClosed}
               />
             );
           })

@@ -7,6 +7,7 @@ interface CelulaProps {
   isPath: boolean;
   isStart: boolean;
   isEnd: boolean;
+  isClosed: boolean;
 }
 
 const TERRAIN_COLORS: { [key: number]: string } = {
@@ -21,6 +22,7 @@ export const Celula: React.FC<CelulaProps> = ({
   isPath,
   isStart,
   isEnd,
+  isClosed,
 }) => {
   let visualClass = TERRAIN_COLORS[node.custoTerreno] || "bg-white";
 
@@ -45,9 +47,7 @@ export const Celula: React.FC<CelulaProps> = ({
 
   return (
     <div className={cellClasses}>
-      {isStart}
-      {node.g}
-      {isEnd}
+      {isPath && node.g} {!isPath && isClosed && "X"}
     </div>
   );
 };
